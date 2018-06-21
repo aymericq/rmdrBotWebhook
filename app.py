@@ -1,12 +1,9 @@
 from pymongo import MongoClient
+import os
 from flask import Flask, request, render_template
 app = Flask(__name__)
 
-MONGODB_USER = 'heroku'
-MONGODB_PWD = 'lgX0skXkb2Hwc34eIrQX'
-# MONGO_URL = '127.0.0.1:27018/rmdr'
-MONGO_URL = 'ds263740.mlab.com:63740/rmdr'
-client = MongoClient('mongodb://'+MONGODB_USER+':'+MONGODB_PWD+'@'+MONGO_URL)
+client = MongoClient(os.environ.get('MONGODB_URL'))
 db = client.rmdr
 
 @app.route("/")

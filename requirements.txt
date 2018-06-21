@@ -4,6 +4,7 @@ gunicorn==19.8.1
 itsdangerous==0.24
 Jinja2==2.10
 MarkupSafe==1.0
+pymongo==3.6.1
 semantic-version==2.6.0
 toolz==0.8.2
 virtualenv==15.1.0
