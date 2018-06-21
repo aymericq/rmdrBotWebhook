@@ -1,5 +1,13 @@
+from pymongo import MongoClient
 from flask import Flask, request, render_template
 app = Flask(__name__)
+
+MONGODB_USER = 'heroku'
+MONGODB_PWD = 'lgX0skXkb2Hwc34eIrQX'
+# MONGO_URL = '127.0.0.1:27018/rmdr'
+MONGO_URL = 'ds263740.mlab.com:63740/rmdr'
+client = MongoClient('mongodb://'+MONGODB_USER+':'+MONGODB_PWD+'@'+MONGO_URL)
+db = client.rmdr
 
 @app.route("/")
 def hello():
@@ -21,6 +29,7 @@ def webhook():
                 return resp
     elif request.method == 'POST':
         body = request.get_json()
+        db.logs.insert_one(body)
         if(body.get('object') == 'page'):
             for entry in body.get('entry'):
                 app.logger.warning(entry.get('messaging')[0].get('message'))
