@@ -2,6 +2,7 @@ from pymongo import MongoClient
 import os
 from flask import Flask, request, render_template
 import requests
+import json
 
 app = Flask(__name__)
 
@@ -32,25 +33,25 @@ def webhook():
         db.logs.insert_one(body)
         if(body.get('object') == 'page'):
             for entry in body.get('entry'):
-                for message in entry.get("messaging"):
-                    handleMessage(messaging.message, messaging.sender.id)
+                message = entry.get('messaging')[0].get('message')
+                handleMessage(message, entry.get('messaging')[0].get('sender').get('id'))
             return 'EVENT_RECEIVED'
-        else:
-            '', 404
     return '', 403
 
 def handleMessage(message, sender_psid):
-    if text in message:
+    if 'text' in message:
         res = {
             "text" : "Vous avez envoyé : '" + message.get('text') + "'."
         }
         callSendAPI(res, sender_psid)
 
-def callSendAPI(sender_psid, res):
+def callSendAPI(res, sender_psid):
     request_body = {
         "recipient": {
             "id": sender_psid
         },
-        "message": req
+        "message": res
     }
-    r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token='+PAGE_ACCESS_TOKEN, request_body)
+    r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token='+PAGE_ACCESS_TOKEN, json = request_body)
+    print(r.text)
+    print(json.dumps(request_body))
