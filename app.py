@@ -30,22 +30,33 @@ def webhook():
                 return resp
     elif request.method == 'POST':
         body = request.get_json()
+        print(body)
         db.logs.insert_one(body)
         if(body.get('object') == 'page'):
             for entry in body.get('entry'):
-                message = entry.get('messaging')[0].get('message')
-                handleMessage(message, entry.get('messaging')[0].get('sender').get('id'))
+                if 'message' in entry.get('messaging')[0]:
+                    message = entry.get('messaging')[0].get('message')
+                    handle_message(message, entry.get('messaging')[0].get('sender').get('id'))
+                    if 'attachments' in message:
+                        handle_attachments(message.get('attachments'), entry.get('messaging')[0].get('sender').get('id'))
             return 'EVENT_RECEIVED'
     return '', 403
 
-def handleMessage(message, sender_psid):
+def handle_message(message, sender_psid):
     if 'text' in message:
         res = {
-            "text" : "Vous avez envoyé : '" + message.get('text') + "'."
+            "text" : "Vous avez envoyé : '{}'.".format(message.get('text'))
         }
-        callSendAPI(res, sender_psid)
+        call_send_API(res, sender_psid)
 
-def callSendAPI(res, sender_psid):
+def handle_attachments(attachments, sender_psid):
+    attachment = attachments[0]
+    res = {
+        "text" : "Cette image est également disponible à l'url : {}".format(attachment.get('payload').get('url'))
+    }
+    call_send_API(res, sender_psid)
+
+def call_send_API(res, sender_psid):
     request_body = {
         "recipient": {
             "id": sender_psid
