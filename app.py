@@ -30,11 +30,10 @@ def webhook():
                 return resp
     elif request.method == 'POST':
         body = request.get_json()
-        print(body)
-        db.logs.insert_one(body)
         if(body.get('object') == 'page'):
             for entry in body.get('entry'):
                 if 'message' in entry.get('messaging')[0]:
+                    db.logs.insert_one(body)
                     message = entry.get('messaging')[0].get('message')
                     handle_message(message, entry.get('messaging')[0].get('sender').get('id'))
                     if 'attachments' in message:
@@ -64,5 +63,3 @@ def call_send_API(res, sender_psid):
         "message": res
     }
     r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token='+PAGE_ACCESS_TOKEN, json = request_body)
-    print(r.text)
-    print(json.dumps(request_body))
