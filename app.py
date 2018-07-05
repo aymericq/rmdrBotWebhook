@@ -48,7 +48,7 @@ def handle_message(message, sender_psid):
             r = requests.get("https://graph.facebook.com/v2.6/{}?fields=first_name,last_name&access_token={}".format(sender_psid, PAGE_ACCESS_TOKEN))
             body = r.json()
             resp_text = "Bonjour {}.".format(body.get("first_name"))
-            if db.users.count('{"psid" : "{}"'.format(sender_psid)) >= 1:
+            if db.users.count('{"psid" : "{}"}'.format(sender_psid)) >= 1:
                 resp_text += "\n Bienvenue à nouveau parmi nous ! :)"
             else:
                 user = {
