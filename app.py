@@ -42,11 +42,15 @@ def webhook():
     return '', 403
 
 def handle_message(message, sender_psid):
-    if 'text' in message:
-        res = {
-            "text" : "Vous avez envoyé : '{}'.".format(message.get('text'))
-        }
-        call_send_API(res, sender_psid)
+    if 'text' in message ans not('is_echo' in message):
+        if text.lower().find("bonjour") != -1:
+            # TODO : recup les infos de profil avec < https://graph.facebook.com/v2.6/<PSID>?fields=first_name,last_name,profile_pic&access_token=<PAGE_ACCESS_TOKEN>" >
+            r = requests.get("https://graph.facebook.com/v2.6/{}?fields=first_name,last_name&access_token={}".format(sender_psid, PAGE_ACCESS_TOKEN))
+            body = r.json()
+            res = {
+                "text" : "Bonjour : '{}'.".format(body.get("first_name"))
+            }
+            call_send_API(res, sender_psid)
 
 def handle_attachments(attachments, sender_psid):
     attachment = attachments[0]
