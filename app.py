@@ -52,9 +52,9 @@ def handle_message(message, sender_psid):
                 resp_text += "\n Bienvenue à nouveau parmi nous ! :)"
             else:
                 user = {
-                    "first_name" : body.get("first_name")
-                    "last_name" : body.get("last_name")
-                    "sender_psid" : sender_psid
+                    "first_name" : body.get("first_name"),
+                    "last_name" : body.get("last_name"),
+                    "psid" : sender_psid,
                     "films" : []
                 }
                 db.users.insert_one(user)
