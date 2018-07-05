@@ -47,8 +47,19 @@ def handle_message(message, sender_psid):
             # TODO : recup les infos de profil avec < https://graph.facebook.com/v2.6/<PSID>?fields=first_name,last_name,profile_pic&access_token=<PAGE_ACCESS_TOKEN>" >
             r = requests.get("https://graph.facebook.com/v2.6/{}?fields=first_name,last_name&access_token={}".format(sender_psid, PAGE_ACCESS_TOKEN))
             body = r.json()
+            resp_text = "Bonjour {}.".format(body.get("first_name"))
+            if db.users.count('{"PSID" : "{}"'.format(sender_psid)) >= 1:
+                resp_text += "\n Bienvenue à nouveau parmi nous ! :)"
+            else:
+                user = {
+                    "first_name" : body.get("first_name")
+                    "last_name" : body.get("last_name")
+                    "sender_psid" : sender_psid
+                    "films" : []
+                }
+                db.users.insert_one(user)
             res = {
-                "text" : "Bonjour : '{}'.".format(body.get("first_name"))
+                "text" : resp_text
             }
             call_send_API(res, sender_psid)
 
