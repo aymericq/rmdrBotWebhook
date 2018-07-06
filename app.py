@@ -48,34 +48,51 @@ def handle_message(message, sender_psid):
             r = requests.get("https://graph.facebook.com/v2.6/{}?fields=first_name,last_name&access_token={}".format(sender_psid, PAGE_ACCESS_TOKEN))
             body = r.json()
             resp_text = "Bonjour {}.".format(body.get("first_name"))
+            quick_replies = []
             if db.users.count({"psid" : sender_psid}) >= 1:
                 resp_text += "\nBienvenue à nouveau parmi nous ! :)"
+                resp_text += "\nQu'est-ce qui t'amène ?"
+                quick_replies = [
+                    {
+                        "content_type":"text",
+                        "title":"Ajout film vu",
+                        "payload":"ADD_SEEN_MOVIE"
+                    },
+                    {
+                        "content_type":"text",
+                        "title":"Ajout envie",
+                        "payload":"ADD_WISH"
+                    }
+                ]
             else:
                 user = {
                     "first_name" : body.get("first_name"),
                     "last_name" : body.get("last_name"),
                     "psid" : sender_psid,
-                    "films" : []
+                    "films" : [],
+                    "state" : "HELLO"
                 }
                 db.users.insert_one(user)
-            resp_text += "\nQu'est-ce qui t'ammène ?"
             res = {
                 "text" : resp_text,
-                "quick_replies" :
-                [
-                    {
-                        "content_type":"text",
-                        "title":"Ajout film vu",
-                        "payload":"suce"
-                    },
-                    {
-                        "content_type":"text",
-                        "title":"Ajout envie",
-                        "payload":"suce"
-                    }
-                ]
+                "quick_replies" : quick_replies
             }
             call_send_API(res, sender_psid)
+        if 'quick_reply' in message:
+            payload = message.get('quick_reply').get('payload')
+            if payload == "ADD_SEEN_MOVIE":
+                res = {
+                    "text" : "Quel est le titre ?"
+                }
+                db.user.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_SEEN_MOVIE_TITLE"}}})
+                call_send_API(res, sender_psid)
+            elif payload == "ADD_WISH":
+                res = {
+                    "text" : "Quel est le titre ?"
+                }
+                db.user.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_WISH_TITLE"}}})
+                call_send_API(res, sender_psid)
+
 
 def handle_attachments(attachments, sender_psid):
     attachment = attachments[0]
