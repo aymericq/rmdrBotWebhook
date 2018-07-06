@@ -49,8 +49,7 @@ def handle_message(message, sender_psid):
             body = r.json()
             resp_text = "Bonjour {}.".format(body.get("first_name"))
             if db.users.count({"psid" : sender_psid}) >= 1:
-                resp_text += "\n\
-                Bienvenue à nouveau parmi nous ! :)"
+                resp_text += "\nBienvenue à nouveau parmi nous ! :)"
             else:
                 user = {
                     "first_name" : body.get("first_name"),
@@ -59,11 +58,11 @@ def handle_message(message, sender_psid):
                     "films" : []
                 }
                 db.users.insert_one(user)
-            resp_text += "\n\
-            Qu'est-ce qui t'ammène ?"
+            resp_text += "\nQu'est-ce qui t'ammène ?"
             res = {
                 "text" : resp_text,
-                "quick_replies" : [
+                "quick_replies" :
+                [
                     {
                         "content_type":"text",
                         "title":"Ajout film vu"
@@ -90,4 +89,5 @@ def call_send_API(res, sender_psid):
         },
         "message": res
     }
-    requests.post('https://graph.facebook.com/v2.6/me/messages?access_token='+PAGE_ACCESS_TOKEN, json = request_body)
+    r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token='+PAGE_ACCESS_TOKEN, json = request_body)
+    print(r.json)
