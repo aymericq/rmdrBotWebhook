@@ -49,7 +49,8 @@ def handle_message(message, sender_psid):
             body = r.json()
             resp_text = "Bonjour {}.".format(body.get("first_name"))
             if db.users.count({"psid" : sender_psid}) >= 1:
-                resp_text += "\n Bienvenue à nouveau parmi nous ! :)"
+                resp_text += "\n\
+                Bienvenue à nouveau parmi nous ! :)"
             else:
                 user = {
                     "first_name" : body.get("first_name"),
@@ -58,10 +59,23 @@ def handle_message(message, sender_psid):
                     "films" : []
                 }
                 db.users.insert_one(user)
+            text += "\n\
+            Qu'est-ce qui t'ammène ?"
             res = {
-                "text" : resp_text
+                "text" : resp_text,
+                "quick_replies" : [
+                    {
+                        "content_type":"text",
+                        "title":"Ajout film vu"
+                    },
+                    {
+                        "content_type":"text",
+                        "title":"Ajout envie"
+                    },
+                ]
             }
             call_send_API(res, sender_psid)
+        if 
 
 def handle_attachments(attachments, sender_psid):
     attachment = attachments[0]
