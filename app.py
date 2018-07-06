@@ -71,7 +71,7 @@ def handle_message(message, sender_psid):
                     {
                         "content_type":"text",
                         "title":"Ajout envie"
-                    },
+                    }
                 ]
             }
             call_send_API(res, sender_psid)
