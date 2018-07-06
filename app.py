@@ -59,7 +59,7 @@ def handle_message(message, sender_psid):
                     "films" : []
                 }
                 db.users.insert_one(user)
-            text += "\n\
+            resp_text += "\n\
             Qu'est-ce qui t'ammène ?"
             res = {
                 "text" : resp_text,
@@ -90,4 +90,4 @@ def call_send_API(res, sender_psid):
         },
         "message": res
     }
-    r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token='+PAGE_ACCESS_TOKEN, json = request_body)
+    requests.post('https://graph.facebook.com/v2.6/me/messages?access_token='+PAGE_ACCESS_TOKEN, json = request_body)
