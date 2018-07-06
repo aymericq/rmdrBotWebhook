@@ -65,11 +65,13 @@ def handle_message(message, sender_psid):
                 [
                     {
                         "content_type":"text",
-                        "title":"Ajout film vu"
+                        "title":"Ajout film vu",
+                        "payload":"suce"
                     },
                     {
                         "content_type":"text",
-                        "title":"Ajout envie"
+                        "title":"Ajout envie",
+                        "payload":"suce"
                     }
                 ]
             }
@@ -90,4 +92,4 @@ def call_send_API(res, sender_psid):
         "message": res
     }
     r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token='+PAGE_ACCESS_TOKEN, json = request_body)
-    print(r.json)
+    print(r.json())
