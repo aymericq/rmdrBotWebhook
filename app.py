@@ -84,13 +84,13 @@ def handle_message(message, sender_psid):
                 res = {
                     "text" : "Quel est le titre ?"
                 }
-                db.user.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_SEEN_MOVIE_TITLE"}})
+                db.users.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_SEEN_MOVIE_TITLE"}})
                 call_send_API(res, sender_psid)
             elif payload == "ADD_WISH":
                 res = {
                     "text" : "Quel est le titre ?"
                 }
-                db.user.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_WISH_TITLE"}})
+                db.users.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_WISH_TITLE"}})
                 call_send_API(res, sender_psid)
 
 
