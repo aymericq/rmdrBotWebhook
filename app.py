@@ -75,7 +75,6 @@ def handle_message(message, sender_psid):
                 ]
             }
             call_send_API(res, sender_psid)
-        if 
 
 def handle_attachments(attachments, sender_psid):
     attachment = attachments[0]
