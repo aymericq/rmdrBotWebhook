@@ -100,10 +100,16 @@ def handle_message(message, sender_psid):
                 call_send_API(res, sender_psid)
         elif state == "WAITING_SEEN_MOVIE_TITLE":
             r = requests.get('http://www.omdbapi.com/?s={}&apikey={}'.format(message.get('text'), OMDB_API_KEY))
-            body = r.json().get('Search')
-            print(body)
-            res = build_movie_list(body)
-            call_send_API(res, sender_psid)
+            body = r.json()
+            if 'Search' in body:
+                res = build_movie_list(body.get('Search'))
+                call_send_API(res, sender_psid)
+                db.users.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_SEEN_TITLE_SELECT_FROM_LIST"}})
+            else:
+                res = {
+                    "text" : "Désolé, aucun film trouvé"
+                }
+                call_send_API(res, sender_psid)
 
 def handle_postback(payload, sender_psid):
     print(payload)
@@ -136,7 +142,7 @@ def build_movie_list(omdb_result):
                 "image_url" : omdb_result[i].get('Poster'),
                 "buttons": [
                     {
-                        "title": "Chosir",
+                        "title": "Choisir",
                         "type": "postback",
                         "payload": "origin:SELECT_SEEN_MOVIE_FROM_LIST;imdb_id:{}".format(omdb_result[i].get('imdbID'))
                     }
