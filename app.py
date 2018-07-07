@@ -39,6 +39,8 @@ def webhook():
                     handle_message(message, entry.get('messaging')[0].get('sender').get('id'))
                     if 'attachments' in message:
                         handle_attachments(message.get('attachments'), entry.get('messaging')[0].get('sender').get('id'))
+                elif 'postback' in entry.get('messaging')[0]:
+                    handle_postback(entry.get('messaging')[0].get('postback').get('payload'), entry.get('messaging')[0].get('sender').get('id'))
             return 'EVENT_RECEIVED'
     return '', 403
 
@@ -76,6 +78,7 @@ def handle_message(message, sender_psid):
                     "state" : "HELLO"
                 }
                 db.users.insert_one(user)
+            db.users.update({"psid" : sender_psid}, {"$set":{"state" : "HELLO"}})
             res = {
                 "text" : resp_text,
                 "quick_replies" : quick_replies
@@ -102,6 +105,8 @@ def handle_message(message, sender_psid):
             res = build_movie_list(body)
             call_send_API(res, sender_psid)
 
+def handle_postback(message, sender_psid):
+    print(payload)
 
 def handle_attachments(attachments, sender_psid):
     attachment = attachments[0]
@@ -128,7 +133,15 @@ def build_movie_list(omdb_result):
         elements.append(
             {
                 "title" : omdb_result[i].get('Title'),
-                "image_url" : omdb_result[i].get('Poster')
+                "image_url" : omdb_result[i].get('Poster'),
+                "default_action": {
+                    "type": "postback",
+                    "messenger_extensions": True,
+                    "payload": {
+                        "origin": "SELECT_SEEN_MOVIE_FROM_LIST",
+                        "imdb_id": omdb_result[i].get('imdbID')
+                    }
+                }
             }
         )
         i += 1
