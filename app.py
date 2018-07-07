@@ -147,7 +147,7 @@ def build_movie_list(omdb_result):
                 "image_url" : omdb_result[i].get('Poster'),
                 "default_action": {
                     "type": "web_url",
-                    "url": "https://www.imdb.com/title/{}}/".format(omdb_result[i].get('imdbID')),
+                    "url": "https://www.imdb.com/title/{}/".format(omdb_result[i].get('imdbID')),
                     "messenger_extensions": True,
                     "webview_height_ratio": "tall"
                 },
