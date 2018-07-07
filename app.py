@@ -94,6 +94,7 @@ def handle_message(message, sender_psid):
                 db.users.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_WISH_TITLE"}})
                 call_send_API(res, sender_psid)
         state =  db.users.find_one({"psid" : sender_psid}, {"_id" : 0, "state" : 1}).get('state')
+        print(state)
         if state == "WAITING_SEEN_MOVIE_TITLE":
             r = requests.get('http://www.omdbapi.com/?s="{}"&apikey={}'.format(message.get('text'), OMDB_API_KEY))
             body = r.json()
