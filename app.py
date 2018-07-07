@@ -136,7 +136,7 @@ def build_movie_list(omdb_result):
                 "image_url" : omdb_result[i].get('Poster'),
                 "buttons": [
                     {
-                        "title": "Chosir"
+                        "title": "Chosir",
                         "type": "postback",
                         "payload": "origin:SELECT_SEEN_MOVIE_FROM_LIST;imdb_id:{}".format(omdb_result[i].get('imdbID'))
                     }
