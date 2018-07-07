@@ -105,7 +105,7 @@ def handle_message(message, sender_psid):
             res = build_movie_list(body)
             call_send_API(res, sender_psid)
 
-def handle_postback(message, sender_psid):
+def handle_postback(payload, sender_psid):
     print(payload)
 
 def handle_attachments(attachments, sender_psid):
@@ -137,10 +137,10 @@ def build_movie_list(omdb_result):
                 "default_action": {
                     "type": "postback",
                     "messenger_extensions": True,
-                    "payload": {
-                        "origin": "SELECT_SEEN_MOVIE_FROM_LIST",
-                        "imdb_id": omdb_result[i].get('imdbID')
-                    }
+                    "payload": '{\
+                        "origin": "SELECT_SEEN_MOVIE_FROM_LIST",\
+                        "imdb_id": {}\
+                    }'.format(omdb_result[i].get('imdbID'))
                 }
             }
         )
