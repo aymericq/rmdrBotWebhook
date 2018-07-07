@@ -112,7 +112,12 @@ def handle_message(message, sender_psid):
                 call_send_API(res, sender_psid)
 
 def handle_postback(payload, sender_psid):
-    print(payload)
+    params = payload.split(';')
+    dico = {}
+    for elem in params:
+        param = elem.split(':')
+        dico[param[0]] = param[1]
+    print(dico)
 
 def handle_attachments(attachments, sender_psid):
     attachment = attachments[0]
@@ -140,6 +145,12 @@ def build_movie_list(omdb_result):
             {
                 "title" : omdb_result[i].get('Title'),
                 "image_url" : omdb_result[i].get('Poster'),
+                "default_action": {
+                    "type": "web_url",
+                    "url": "https://www.imdb.com/title/{}}/".format(omdb_result[i].get('imdbID')),
+                    "messenger_extensions": True,
+                    "webview_height_ratio": "tall"
+                },
                 "buttons": [
                     {
                         "title": "Choisir",
