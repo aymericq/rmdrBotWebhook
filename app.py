@@ -97,11 +97,9 @@ def handle_message(message, sender_psid):
                 call_send_API(res, sender_psid)
         elif state == "WAITING_SEEN_MOVIE_TITLE":
             r = requests.get('http://www.omdbapi.com/?s={}&apikey={}'.format(message.get('text'), OMDB_API_KEY))
-            body = r.json()
+            body = r.json().get('Search')
             print(body)
-            res = {
-                "text" : body.get('Search')[0].get('Title') + "\n" + body.get('Search')[1].get('Title')
-            }
+            res = build_movie_list(body)
             call_send_API(res, sender_psid)
 
 
@@ -121,3 +119,35 @@ def call_send_API(res, sender_psid):
     }
     r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token='+PAGE_ACCESS_TOKEN, json = request_body)
     print(r.json())
+
+def build_movie_list(omdb_result):
+    VIEW_LIMIT = 4
+    i = 0
+    elements = []
+    while i < VIEW_LIMIT and i < len(omdb_result):
+        elements.append(
+            {
+                "title" : omdb_result[i].get('Title'),
+                "image_url" : omdb_result[i].get('Poster')
+            }
+        )
+        i += 1
+    
+    res = {
+        "attachment": {
+            "type": "template",
+            "payload": {
+                "template_type": "list",
+                "top_element_style": "compact",
+                "elements": elements,
+                "buttons": [
+                    {
+                        "title": "View More",
+                        "type": "postback",
+                        "payload": "payload"            
+                    }
+                ]  
+            }
+        }
+    }
+    return res
