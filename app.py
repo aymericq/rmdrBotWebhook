@@ -134,11 +134,13 @@ def build_movie_list(omdb_result):
             {
                 "title" : omdb_result[i].get('Title'),
                 "image_url" : omdb_result[i].get('Poster'),
-                "default_action": {
-                    "type": "postback",
-                    "messenger_extensions": True,
-                    "payload": "origin:SELECT_SEEN_MOVIE_FROM_LIST;imdb_id:{}".format(omdb_result[i].get('imdbID'))
-                }
+                "buttons": [
+                    {
+                        "title": "Chosir"
+                        "type": "postback",
+                        "payload": "origin:SELECT_SEEN_MOVIE_FROM_LIST;imdb_id:{}".format(omdb_result[i].get('imdbID'))
+                    }
+                ]
             }
         )
         i += 1
