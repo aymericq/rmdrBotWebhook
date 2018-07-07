@@ -98,6 +98,7 @@ def handle_message(message, sender_psid):
         if state == "WAITING_SEEN_MOVIE_TITLE":
             r = requests.get('http://www.omdbapi.com/?s="{}"&apikey={}'.format(message.get('text'), OMDB_API_KEY))
             body = r.json()
+            print(body)
             res = {
                 "text" : body.get('Search')[0].get('Title') + "\n" + body.get('Search')[1].get('Title')
             }
