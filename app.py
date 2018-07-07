@@ -9,6 +9,7 @@ app = Flask(__name__)
 client = MongoClient(os.environ.get('MONGODB_URL'))
 VERIFY_TOKEN = os.environ.get('FB_VERIFY_TOKEN')
 PAGE_ACCESS_TOKEN = os.environ.get('PAGE_ACCESS_TOKEN')
+OMDB_API_KEY = os.environ.get('OMDB_API_KEY')
 db = client.rmdr
 
 @app.route("/")
@@ -78,7 +79,7 @@ def handle_message(message, sender_psid):
                 "quick_replies" : quick_replies
             }
             call_send_API(res, sender_psid)
-        if 'quick_reply' in message:
+        elif 'quick_reply' in message:
             payload = message.get('quick_reply').get('payload')
             if payload == "ADD_SEEN_MOVIE":
                 res = {
@@ -92,6 +93,14 @@ def handle_message(message, sender_psid):
                 }
                 db.users.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_WISH_TITLE"}})
                 call_send_API(res, sender_psid)
+        state =  db.users.find_one({"psid" : sender_psid}, {"_id" : 0, "state" : 1}).get('state')
+        if state == "WAITING_SEEN_MOVIE_TITLE":
+            r = requests.get('http://www.omdbapi.com/?s="{}"&apikey={}'.format(message.get('text'), OMDB_API_KEY))
+            body = r.json()
+            res = {
+                "text" : body.get('Search')[0].get('Title') + "\n" + body.get('Search')[1].get('Title')
+            }
+            call_send_API(res, sender_psid)
 
 
 def handle_attachments(attachments, sender_psid):
