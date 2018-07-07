@@ -44,6 +44,8 @@ def webhook():
 
 def handle_message(message, sender_psid):
     if 'text' in message and not('is_echo' in message):
+        state =  db.users.find_one({"psid" : sender_psid}, {"_id" : 0, "state" : 1}).get('state')
+        print(state)
         if message.get('text').lower().find("bonjour") != -1:
             # TODO : recup les infos de profil avec < https://graph.facebook.com/v2.6/<PSID>?fields=first_name,last_name,profile_pic&access_token=<PAGE_ACCESS_TOKEN>" >
             r = requests.get("https://graph.facebook.com/v2.6/{}?fields=first_name,last_name&access_token={}".format(sender_psid, PAGE_ACCESS_TOKEN))
@@ -93,10 +95,8 @@ def handle_message(message, sender_psid):
                 }
                 db.users.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_WISH_TITLE"}})
                 call_send_API(res, sender_psid)
-        state =  db.users.find_one({"psid" : sender_psid}, {"_id" : 0, "state" : 1}).get('state')
-        print(state)
-        if state == "WAITING_SEEN_MOVIE_TITLE":
-            r = requests.get('http://www.omdbapi.com/?s="{}"&apikey={}'.format(message.get('text'), OMDB_API_KEY))
+        elif state == "WAITING_SEEN_MOVIE_TITLE":
+            r = requests.get('http://www.omdbapi.com/?s={}&apikey={}'.format(message.get('text'), OMDB_API_KEY))
             body = r.json()
             print(body)
             res = {
