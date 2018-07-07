@@ -137,10 +137,7 @@ def build_movie_list(omdb_result):
                 "default_action": {
                     "type": "postback",
                     "messenger_extensions": True,
-                    "payload": '{\
-                        "origin": "SELECT_SEEN_MOVIE_FROM_LIST",\
-                        "imdb_id": {}\
-                    }'.format(omdb_result[i].get('imdbID'))
+                    "payload": "origin:SELECT_SEEN_MOVIE_FROM_LIST;imdb_id:{}".format(omdb_result[i].get('imdbID'))
                 }
             }
         )
