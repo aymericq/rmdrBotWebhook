@@ -112,7 +112,7 @@ def handle_message(message, sender_psid):
                 call_send_API(res, sender_psid)
 
 def handle_postback(payload, sender_psid):
-    json_content = json.load(payload)
+    json_content = json.loads(payload)
     if 'origin' in json_content:
         print("POSTBACK CONTAINS JSON")
 
