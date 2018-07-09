@@ -102,7 +102,7 @@ def handle_message(message, sender_psid):
             r = requests.get('http://www.omdbapi.com/?s={}&apikey={}'.format(message.get('text'), OMDB_API_KEY))
             body = r.json()
             if 'Search' in body:
-                res = build_movie_list(body.get('Search'), 1)
+                res = build_movie_list(body.get('Search'), 1, message.get('text'))
                 call_send_API(res, sender_psid)
                 db.users.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_SEEN_TITLE_SELECT_FROM_LIST"}})
             else:
@@ -114,6 +114,20 @@ def handle_message(message, sender_psid):
 def handle_postback(payload, sender_psid):
     json_content = json.loads(payload)
     if 'origin' in json_content:
+        if 'origin' == "WAITING_SEEN_TITLE_SELECT_FROM_LIST_VIEWMORE":
+            range_factor = json_content.get('range_factor')
+            query = json_content.get('original_search_query')
+            r = requests.get('http://www.omdbapi.com/?s={}&apikey={}'.format(query, OMDB_API_KEY))
+            body = r.json()
+            if 'Search' in body:
+                res = build_movie_list(body.get('Search'), range_factor, query)
+                call_send_API(res, sender_psid)
+                db.users.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_SEEN_TITLE_SELECT_FROM_LIST"}})
+            else:
+                res = {
+                    "text" : "Désolé, aucun film trouvé"
+                }
+                call_send_API(res, sender_psid)
         print("POSTBACK CONTAINS JSON")
 
 def handle_attachments(attachments, sender_psid):
@@ -133,9 +147,9 @@ def call_send_API(res, sender_psid):
     r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token='+PAGE_ACCESS_TOKEN, json = request_body)
     print(r.json())
 
-def build_movie_list(omdb_result, range):
+def build_movie_list(omdb_result, range_factor, query):
     VIEW_LIMIT = 4
-    i = 0
+    i = (range_factor - 1)*VIEW_LIMIT
     elements = []
     while i < VIEW_LIMIT and i < len(omdb_result):
         payload = {
@@ -165,7 +179,8 @@ def build_movie_list(omdb_result, range):
     
     viewmore_payload = {
         "origin" : "WAITING_SEEN_TITLE_SELECT_FROM_LIST_VIEWMORE",
-        "range" : range
+        "range" : range_factor,
+        "original_search_query" : query
     }
     res = {
         "attachment": {
