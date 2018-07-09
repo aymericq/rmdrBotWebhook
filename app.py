@@ -102,7 +102,7 @@ def handle_message(message, sender_psid):
             r = requests.get('http://www.omdbapi.com/?s={}&apikey={}'.format(message.get('text'), OMDB_API_KEY))
             body = r.json()
             if 'Search' in body:
-                res = build_movie_list(body.get('Search'))
+                res = build_movie_list(body.get('Search'), 1)
                 call_send_API(res, sender_psid)
                 db.users.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_SEEN_TITLE_SELECT_FROM_LIST"}})
             else:
@@ -112,12 +112,9 @@ def handle_message(message, sender_psid):
                 call_send_API(res, sender_psid)
 
 def handle_postback(payload, sender_psid):
-    params = payload.split(';')
-    dico = {}
-    for elem in params:
-        param = elem.split(':')
-        dico[param[0]] = param[1]
-    print(dico)
+    json_content = json.load(payload)
+    if 'origin' in json_content:
+        print("POSTBACK CONTAINS JSON")
 
 def handle_attachments(attachments, sender_psid):
     attachment = attachments[0]
@@ -136,11 +133,15 @@ def call_send_API(res, sender_psid):
     r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token='+PAGE_ACCESS_TOKEN, json = request_body)
     print(r.json())
 
-def build_movie_list(omdb_result):
+def build_movie_list(omdb_result, range):
     VIEW_LIMIT = 4
     i = 0
     elements = []
     while i < VIEW_LIMIT and i < len(omdb_result):
+        payload = {
+            "origin" : "SELECT_SEEN_MOVIE_FROM_LIST",
+            "imdb_id" : omdb_result[i].get('imdbID')
+        }
         elements.append(
             {
                 "title" : omdb_result[i].get('Title'),
@@ -155,13 +156,17 @@ def build_movie_list(omdb_result):
                     {
                         "title": "Choisir",
                         "type": "postback",
-                        "payload": "origin:SELECT_SEEN_MOVIE_FROM_LIST;imdb_id:{}".format(omdb_result[i].get('imdbID'))
+                        "payload": json.dumps(payload)
                     }
                 ]
             }
         )
         i += 1
     
+    viewmore_payload = {
+        "origin" : "WAITING_SEEN_TITLE_SELECT_FROM_LIST_VIEWMORE",
+        "range" : range
+    }
     res = {
         "attachment": {
             "type": "template",
@@ -173,7 +178,7 @@ def build_movie_list(omdb_result):
                     {
                         "title": "View More",
                         "type": "postback",
-                        "payload": "payload"            
+                        "payload": json.dumps(viewmore_payload)           
                     }
                 ]  
             }
