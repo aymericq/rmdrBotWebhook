@@ -133,6 +133,7 @@ def handle_postback(payload, sender_psid):
                 "status" : "SEEN",
                 "imdb_id" : json_content.get('imdb_id')
             }}})
+            print(json_content)
             res = {
                 "text" : "{} a bien été ajouté à ta liste de films vus.".format(json_content.get('imdb_title'))
             }
