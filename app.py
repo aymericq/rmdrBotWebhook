@@ -152,8 +152,9 @@ def call_send_API(res, sender_psid):
 def build_movie_list(omdb_result, range_factor, query):
     VIEW_LIMIT = 4
     i = (range_factor - 1)*VIEW_LIMIT
+    curr_limit = i + VIEW_LIMIT
     elements = []
-    while i < VIEW_LIMIT and i < len(omdb_result):
+    while i < curr_limit and i < len(omdb_result):
         payload = {
             "origin" : "SELECT_SEEN_MOVIE_FROM_LIST",
             "imdb_id" : omdb_result[i].get('imdbID')
