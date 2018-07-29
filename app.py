@@ -121,6 +121,7 @@ def handle_postback(payload, sender_psid):
             body = r.json()
             if 'Search' in body:
                 res = build_movie_list(body.get('Search'), range_factor, query)
+                print(res)
                 call_send_API(res, sender_psid)
                 db.users.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_SEEN_TITLE_SELECT_FROM_LIST"}})
             else:
