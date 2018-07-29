@@ -119,10 +119,8 @@ def handle_postback(payload, sender_psid):
             query = json_content.get('original_search_query')
             r = requests.get('http://www.omdbapi.com/?s={}&apikey={}'.format(query, OMDB_API_KEY))
             body = r.json()
-            print(body)
             if 'Search' in body:
                 res = build_movie_list(body.get('Search'), range_factor, query)
-                print(res)
                 call_send_API(res, sender_psid)
                 db.users.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_SEEN_TITLE_SELECT_FROM_LIST"}})
             else:
@@ -130,6 +128,15 @@ def handle_postback(payload, sender_psid):
                     "text" : "Désolé, aucun film trouvé"
                 }
                 call_send_API(res, sender_psid)
+        elif json_content.get('origin') == "SELECT_SEEN_MOVIE_FROM_LIST":
+            db.users.update({"psid" : sender_psid}, {"$push":{"films" : {
+                "status" : "SEEN",
+                "imdb_id" : json_content.get('imdb_id')
+            }}})
+            res = {
+                "text" : "{} a bien été ajouté à ta liste de films vus.".format(json_content.get('imdb_title'))
+            }
+            call_send_API(res, sender_psid)
         print("POSTBACK CONTAINS JSON")
 
 def handle_attachments(attachments, sender_psid):
@@ -157,7 +164,8 @@ def build_movie_list(omdb_result, range_factor, query):
     while i < curr_limit and i < len(omdb_result):
         payload = {
             "origin" : "SELECT_SEEN_MOVIE_FROM_LIST",
-            "imdb_id" : omdb_result[i].get('imdbID')
+            "imdb_id" : omdb_result[i].get('imdbID'),
+            "imdb_title" : omdb_result[i].get('Title')
         }
         elements.append(
             {
