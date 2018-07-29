@@ -33,8 +33,8 @@ def webhook():
         body = request.get_json()
         if(body.get('object') == 'page'):
             for entry in body.get('entry'):
+                db.logs.insert_one(body)
                 if 'message' in entry.get('messaging')[0]:
-                    db.logs.insert_one(body)
                     message = entry.get('messaging')[0].get('message')
                     handle_message(message, entry.get('messaging')[0].get('sender').get('id'))
                     if 'attachments' in message:
