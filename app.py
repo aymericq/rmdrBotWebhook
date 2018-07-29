@@ -129,6 +129,7 @@ def handle_postback(payload, sender_psid):
                 }
                 call_send_API(res, sender_psid)
         elif json_content.get('origin') == "SELECT_SEEN_MOVIE_FROM_LIST":
+            print(db.films.find({"imdb_id" : json_content.get('imdb_id')}))
             db.users.update({"psid" : sender_psid}, {"$push":{"films" : {
                 "status" : "SEEN",
                 "imdb_id" : json_content.get('imdb_id')
@@ -138,6 +139,7 @@ def handle_postback(payload, sender_psid):
                 "text" : "{} a bien été ajouté à ta liste de films vus.".format(json_content.get('imdb_title'))
             }
             call_send_API(res, sender_psid)
+            db.users.update({"psid" : sender_psid}, {"$set":{"state" : "HELLO"}})
         print("POSTBACK CONTAINS JSON")
 
 def handle_attachments(attachments, sender_psid):
