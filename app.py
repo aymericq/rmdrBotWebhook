@@ -114,7 +114,7 @@ def handle_message(message, sender_psid):
 def handle_postback(payload, sender_psid):
     json_content = json.loads(payload)
     if 'origin' in json_content:
-        if 'origin' == "WAITING_SEEN_TITLE_SELECT_FROM_LIST_VIEWMORE":
+        if json_content.get('origin') == "WAITING_SEEN_TITLE_SELECT_FROM_LIST_VIEWMORE":
             range_factor = json_content.get('range_factor')
             query = json_content.get('original_search_query')
             r = requests.get('http://www.omdbapi.com/?s={}&apikey={}'.format(query, OMDB_API_KEY))
