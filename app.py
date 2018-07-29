@@ -179,7 +179,7 @@ def build_movie_list(omdb_result, range_factor, query):
     
     viewmore_payload = {
         "origin" : "WAITING_SEEN_TITLE_SELECT_FROM_LIST_VIEWMORE",
-        "range" : range_factor,
+        "range_factor" : range_factor+1,
         "original_search_query" : query
     }
     res = {
