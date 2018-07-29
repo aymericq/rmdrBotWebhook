@@ -119,6 +119,7 @@ def handle_postback(payload, sender_psid):
             query = json_content.get('original_search_query')
             r = requests.get('http://www.omdbapi.com/?s={}&apikey={}'.format(query, OMDB_API_KEY))
             body = r.json()
+            print(body)
             if 'Search' in body:
                 res = build_movie_list(body.get('Search'), range_factor, query)
                 print(res)
