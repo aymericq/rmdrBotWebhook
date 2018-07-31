@@ -129,7 +129,7 @@ def handle_postback(payload, sender_psid):
                 }
                 call_send_API(res, sender_psid)
         elif json_content.get('origin') == "SELECT_SEEN_MOVIE_FROM_LIST":
-            print(db.films.find({"imdb_id" : json_content.get('imdb_id')})) ## RETURNS <pymongo.cursor.Cursor object at 0x7ff23be23a58>
+            print(db.films.find_one({"imdb_id" : json_content.get('imdb_id')})) ## RETURNS <pymongo.cursor.Cursor object at 0x7ff23be23a58>
             db.users.update({"psid" : sender_psid}, {"$push":{"films" : {
                 "status" : "SEEN",
                 "imdb_id" : json_content.get('imdb_id')
