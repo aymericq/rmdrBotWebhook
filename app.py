@@ -129,11 +129,19 @@ def handle_postback(payload, sender_psid):
                 }
                 call_send_API(res, sender_psid)
         elif json_content.get('origin') == "SELECT_SEEN_MOVIE_FROM_LIST":
-            print(db.films.find_one({"imdb_id" : json_content.get('imdb_id')})) ## RETURNS <pymongo.cursor.Cursor object at 0x7ff23be23a58>
+            existing_entry = db.films.find_one({"imdb_id" : json_content.get('imdb_id')})
+            inserted_id = existing_entry._id
+            if existing_entry == None:
+                inserted_id= db.users.insert({
+                    "imdb_id" : json_content.get('imdb_id'),
+                    "title" : json_content.get('imdb_title'),
+                    "comments" : []
+                }).inserted_id
             db.users.update({"psid" : sender_psid}, {"$push":{"films" : {
                 "status" : "SEEN",
-                "imdb_id" : json_content.get('imdb_id')
-            }}})
+                "imdb_id" : json_content.get('imdb_id'),
+                "film_id" : inserted_id
+            }}}, {"upsert":True})
             print(json_content)
             res = {
                 "text" : "{} a bien été ajouté à ta liste de films vus.".format(json_content.get('imdb_title'))
