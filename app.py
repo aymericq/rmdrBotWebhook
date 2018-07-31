@@ -132,11 +132,11 @@ def handle_postback(payload, sender_psid):
             existing_entry = db.films.find_one({"imdb_id" : json_content.get('imdb_id')})
             inserted_id = -1
             if existing_entry == None:
-                inserted_id= db.users.insert({
+                inserted_id = db.users.insert({
                     "imdb_id" : json_content.get('imdb_id'),
                     "title" : json_content.get('imdb_title'),
                     "comments" : []
-                }).inserted_id
+                })
             else:
                 inserted_id = existing_entry._id
             db.users.update({"psid" : sender_psid}, {"$push":{"films" : {
