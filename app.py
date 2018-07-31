@@ -130,13 +130,15 @@ def handle_postback(payload, sender_psid):
                 call_send_API(res, sender_psid)
         elif json_content.get('origin') == "SELECT_SEEN_MOVIE_FROM_LIST":
             existing_entry = db.films.find_one({"imdb_id" : json_content.get('imdb_id')})
-            inserted_id = existing_entry._id
+            inserted_id = -1
             if existing_entry == None:
                 inserted_id= db.users.insert({
                     "imdb_id" : json_content.get('imdb_id'),
                     "title" : json_content.get('imdb_title'),
                     "comments" : []
                 }).inserted_id
+            else:
+                inserted_id = existing_entry._id
             db.users.update({"psid" : sender_psid}, {"$push":{"films" : {
                 "status" : "SEEN",
                 "imdb_id" : json_content.get('imdb_id'),
