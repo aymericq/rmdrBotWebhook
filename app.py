@@ -138,7 +138,7 @@ def handle_postback(payload, sender_psid):
                     "comments" : []
                 })
             else:
-                inserted_id = existing_entry._id
+                inserted_id = existing_entry.get('_id')
             db.users.update({"psid" : sender_psid}, {"$push":{"films" : {
                 "status" : "SEEN",
                 "imdb_id" : json_content.get('imdb_id'),
@@ -166,6 +166,7 @@ def call_send_API(res, sender_psid):
         },
         "message": res
     }
+    print(request_body)
     r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token='+PAGE_ACCESS_TOKEN, json = request_body)
     print(r.json())
 
