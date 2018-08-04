@@ -129,7 +129,7 @@ def handle_postback(payload, sender_psid):
                 }
                 call_send_API(res, sender_psid)
         elif json_content.get('origin') == "SELECT_SEEN_MOVIE_FROM_LIST":
-            existing_entry = db.films.find_one({"imdb_id" : json_content.get('imdb_id')})
+            existing_entry = db.films.find_one({"imdb_id" : json_content.get('imdb_id')}, {"_id" : 1})
             inserted_id = -1
             if existing_entry == None:
                 inserted_id = db.users.insert({
@@ -139,15 +139,21 @@ def handle_postback(payload, sender_psid):
                 })
             else:
                 inserted_id = existing_entry.get('_id')
-            db.users.update({"psid" : sender_psid}, {"$push":{"films" : {
-                "status" : "SEEN",
-                "imdb_id" : json_content.get('imdb_id'),
-                "film_id" : inserted_id
-            }}}, upsert = True)
-            print(json_content)
-            res = {
-                "text" : "{} a bien été ajouté à ta liste de films vus.".format(json_content.get('imdb_title'))
-            }
+            already_added = db.users.find_one({"psid" : sender_psid, "films.imdb_id" : json_content.get('imdb_id')}, {"_id" : 1})
+            res = {}
+            if already_added != None:
+                res = {
+                    "text" : "{} fait déjà partie de votre liste de films vus".format(json_content.get('imdb_title'))
+                }
+            else:
+                db.users.update({"psid" : sender_psid}, {"$push":{"films" : {
+                    "status" : "SEEN",
+                    "imdb_id" : json_content.get('imdb_id'),
+                    "film_id" : inserted_id
+                }}})
+                res = {
+                    "text" : "{} a bien été ajouté à ta liste de films vus.".format(json_content.get('imdb_title'))
+                }
             call_send_API(res, sender_psid)
             db.users.update({"psid" : sender_psid}, {"$set":{"state" : "HELLO"}})
         print("POSTBACK CONTAINS JSON")
