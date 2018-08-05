@@ -13,7 +13,7 @@ OMDB_API_KEY = os.environ.get('OMDB_API_KEY')
 db = client.rmdr
 
 @app.route("/")
-def hello():
+def hello_world():
     return "Hello World!"
 
 @app.route("/webhook", methods=['GET', 'POST'])
@@ -69,9 +69,21 @@ def handle_message(message, sender_psid):
             r = requests.get('http://www.omdbapi.com/?s={}&apikey={}'.format(message.get('text'), OMDB_API_KEY))
             body = r.json()
             if 'Search' in body:
-                res = build_movie_list(body.get('Search'), 1, message.get('text'))
+                res = build_movie_list(body.get('Search'), 1, message.get('text'), "SEEN")
                 call_send_API(res, sender_psid)
                 db.users.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_SEEN_TITLE_SELECT_FROM_LIST"}})
+            else:
+                res = {
+                    "text" : "Désolé, aucun film trouvé"
+                }
+                call_send_API(res, sender_psid)
+        elif state == "WAITING_WISH_MOVIE_TITLE":
+            r = requests.get('http://www.omdbapi.com/?s={}&apikey={}'.format(message.get('text'), OMDB_API_KEY))
+            body = r.json()
+            if 'Search' in body:
+                res = build_movie_list(body.get('Search'), 1, message.get('text'), "WISH")
+                call_send_API(res, sender_psid)
+                db.users.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_WISH_TITLE_SELECT_FROM_LIST"}})
             else:
                 res = {
                     "text" : "Désolé, aucun film trouvé"
@@ -87,7 +99,7 @@ def handle_postback(payload, sender_psid):
             r = requests.get('http://www.omdbapi.com/?s={}&apikey={}'.format(query, OMDB_API_KEY))
             body = r.json()
             if 'Search' in body:
-                res = build_movie_list(body.get('Search'), range_factor, query)
+                res = build_movie_list(body.get('Search'), range_factor, query, "SEEN")
                 call_send_API(res, sender_psid)
                 db.users.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_SEEN_TITLE_SELECT_FROM_LIST"}})
             else:
@@ -96,15 +108,42 @@ def handle_postback(payload, sender_psid):
                 }
                 call_send_API(res, sender_psid)
         elif json_content.get('origin') == "SELECT_SEEN_MOVIE_FROM_LIST":
-            added_status = add_movie(json_content, sender_psid, "SEEN")
+            added_user_movie_type = add_movie(json_content, sender_psid, "SEEN")
             res = {}
-            if added_status == -1:
+            if added_user_movie_type == -1:
                 res = {
                     "text" : "{} fait déjà partie de votre liste de films vus".format(json_content.get('imdb_title'))
                 }
             else:
                 res = {
                     "text" : "{} a bien été ajouté à ta liste de films vus.".format(json_content.get('imdb_title'))
+                }
+            call_send_API(res, sender_psid)
+            db.users.update({"psid" : sender_psid}, {"$set":{"state" : "HELLO"}})
+        elif json_content.get('origin') == "WAITING_WISH_TITLE_SELECT_FROM_LIST_VIEWMORE":
+            range_factor = json_content.get('range_factor')
+            query = json_content.get('original_search_query')
+            r = requests.get('http://www.omdbapi.com/?s={}&apikey={}'.format(query, OMDB_API_KEY))
+            body = r.json()
+            if 'Search' in body:
+                res = build_movie_list(body.get('Search'), range_factor, query, "WISH")
+                call_send_API(res, sender_psid)
+                db.users.update({"psid" : sender_psid}, {"$set":{"state" : "WAITING_WISH_TITLE_SELECT_FROM_LIST"}})
+            else:
+                res = {
+                    "text" : "Désolé, aucun film trouvé"
+                }
+                call_send_API(res, sender_psid)
+        elif json_content.get('origin') == "SELECT_WISH_MOVIE_FROM_LIST":
+            added_user_movie_type = add_movie(json_content, sender_psid, "WISH")
+            res = {}
+            if added_user_movie_type == -1:
+                res = {
+                    "text" : "{} fait déjà partie de votre liste d'envies.".format(json_content.get('imdb_title'))
+                }
+            else:
+                res = {
+                    "text" : "{} a bien été ajouté à ta liste d'envies.".format(json_content.get('imdb_title'))
                 }
             call_send_API(res, sender_psid)
             db.users.update({"psid" : sender_psid}, {"$set":{"state" : "HELLO"}})
@@ -128,14 +167,14 @@ def call_send_API(res, sender_psid):
     r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token='+PAGE_ACCESS_TOKEN, json = request_body)
     print(r.json())
 
-def build_movie_list(omdb_result, range_factor, query):
+def build_movie_list(omdb_result, range_factor, query, user_movie_type):
     VIEW_LIMIT = 4
     i = (range_factor - 1)*VIEW_LIMIT
     curr_limit = i + VIEW_LIMIT
     elements = []
     while i < curr_limit and i < len(omdb_result):
         payload = {
-            "origin" : "SELECT_SEEN_MOVIE_FROM_LIST",
+            "origin" : "SELECT_" + user_movie_type + "_MOVIE_FROM_LIST",
             "imdb_id" : omdb_result[i].get('imdbID'),
             "imdb_title" : omdb_result[i].get('Title')
         }
@@ -166,7 +205,7 @@ def build_movie_list(omdb_result, range_factor, query):
         i += 1
     
     viewmore_payload = {
-        "origin" : "WAITING_SEEN_TITLE_SELECT_FROM_LIST_VIEWMORE",
+        "origin" : "WAITING_" + user_movie_type + "_TITLE_SELECT_FROM_LIST_VIEWMORE",
         "range_factor" : range_factor+1,
         "original_search_query" : query
     }
@@ -189,7 +228,7 @@ def build_movie_list(omdb_result, range_factor, query):
     }
     return res
 
-def add_movie(mov_info, sender_psid, status):
+def add_movie(mov_info, sender_psid, user_movie_type):
     existing_entry = db.films.find_one({"imdb_id" : mov_info.get('imdb_id')}, {"_id" : 1})
     inserted_id = -1
     if existing_entry == None:
@@ -205,7 +244,7 @@ def add_movie(mov_info, sender_psid, status):
         return -1
     else:
         db.users.update({"psid" : sender_psid}, {"$push":{"films" : {
-            "status" : status,
+            "user_movie_type" : user_movie_type,
             "imdb_id" : mov_info.get('imdb_id'),
             "film_id" : inserted_id
         }}})
