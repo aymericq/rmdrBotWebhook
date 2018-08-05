@@ -195,7 +195,7 @@ def build_movie_list(omdb_result, range_factor, query):
         elements.append(
             {
                 "title" : omdb_result[i].get('Title'),
-                "image_url" : omdb_result[i].get('Poster'),
+                "image_url" : poster_url,
                 "default_action": {
                     "type": "web_url",
                     "url": "https://www.imdb.com/title/{}/".format(omdb_result[i].get('imdbID')),
