@@ -129,28 +129,13 @@ def handle_postback(payload, sender_psid):
                 }
                 call_send_API(res, sender_psid)
         elif json_content.get('origin') == "SELECT_SEEN_MOVIE_FROM_LIST":
-            existing_entry = db.films.find_one({"imdb_id" : json_content.get('imdb_id')}, {"_id" : 1})
-            inserted_id = -1
-            if existing_entry == None:
-                inserted_id = db.films.insert({
-                    "imdb_id" : json_content.get('imdb_id'),
-                    "title" : json_content.get('imdb_title'),
-                    "comments" : []
-                })
-            else:
-                inserted_id = existing_entry.get('_id')
-            already_added = db.users.find_one({"psid" : sender_psid, "films.imdb_id" : json_content.get('imdb_id')}, {"_id" : 1})
+            added_status = add_movie(json_content, sender_psid, "SEEN")
             res = {}
-            if already_added != None:
+            if added_status == -1:
                 res = {
                     "text" : "{} fait déjà partie de votre liste de films vus".format(json_content.get('imdb_title'))
                 }
             else:
-                db.users.update({"psid" : sender_psid}, {"$push":{"films" : {
-                    "status" : "SEEN",
-                    "imdb_id" : json_content.get('imdb_id'),
-                    "film_id" : inserted_id
-                }}})
                 res = {
                     "text" : "{} a bien été ajouté à ta liste de films vus.".format(json_content.get('imdb_title'))
                 }
@@ -236,3 +221,25 @@ def build_movie_list(omdb_result, range_factor, query):
         }
     }
     return res
+
+def add_movie(mov_info, sender_psid, status):
+    existing_entry = db.films.find_one({"imdb_id" : mov_info.get('imdb_id')}, {"_id" : 1})
+    inserted_id = -1
+    if existing_entry == None:
+        inserted_id = db.films.insert({
+            "imdb_id" : mov_info.get('imdb_id'),
+            "title" : mov_info.get('imdb_title'),
+            "comments" : []
+        })
+    else:
+        inserted_id = existing_entry.get('_id')
+    already_added = db.users.find_one({"psid" : sender_psid, "films.imdb_id" : mov_info.get('imdb_id')}, {"_id" : 1})
+    if already_added != None:
+        return -1
+    else:
+        db.users.update({"psid" : sender_psid}, {"$push":{"films" : {
+            "status" : status,
+            "imdb_id" : mov_info.get('imdb_id'),
+            "film_id" : inserted_id
+        }}})
+        return 0
