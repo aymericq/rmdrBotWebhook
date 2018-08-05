@@ -132,7 +132,7 @@ def handle_postback(payload, sender_psid):
             existing_entry = db.films.find_one({"imdb_id" : json_content.get('imdb_id')}, {"_id" : 1})
             inserted_id = -1
             if existing_entry == None:
-                inserted_id = db.users.insert({
+                inserted_id = db.films.insert({
                     "imdb_id" : json_content.get('imdb_id'),
                     "title" : json_content.get('imdb_title'),
                     "comments" : []
@@ -187,6 +187,11 @@ def build_movie_list(omdb_result, range_factor, query):
             "imdb_id" : omdb_result[i].get('imdbID'),
             "imdb_title" : omdb_result[i].get('Title')
         }
+        poster_url = ""
+        if omdb_result[i].get('Poster') != "N/A":
+            poster_url = omdb_result[i].get('Poster')
+        else:
+            poster_url = "https://cdn140.picsart.com/253668100008212.png?r1024x1024"
         elements.append(
             {
                 "title" : omdb_result[i].get('Title'),
